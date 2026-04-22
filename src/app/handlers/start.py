@@ -1,11 +1,11 @@
 import re
+import asyncio
 
 import asyncpg
-from aiogram import Router
-from aiogram.filters import CommandStart, CommandObject
+from aiogram import Router, F
+from aiogram.filters import CommandStart, CommandObject, Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
-from asyncpg import Connection
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.enums import ChatAction
 
 
