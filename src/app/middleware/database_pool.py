@@ -1,7 +1,7 @@
 from typing import Callable, Dict, Any, Awaitable, Optional
 
 import asyncpg
-from aiogram import BaseMiddleware
+from aiogram import BaseMiddleware, Bot
 from aiogram.types import TelegramObject, CallbackQuery, Message
 
 
@@ -16,11 +16,13 @@ class DatabaseMiddleware(BaseMiddleware):
         data: Dict[str, Any]
     ) -> Any:
 
-        # 🔥 SAFE MODE: if DB not available, skip injection
-        if self.pool is None:
-            return await handler(event, data)
+        # 🔥 ALWAYS inject bot (important)
+        data["bot"] = data.get("bot")
 
-        # inject pool into handlers
-        data["pool"] = self.pool
+        # 🔥 SAFE DB handling
+        if self.pool is not None:
+            data["pool"] = self.pool
+        else:
+            data["pool"] = None  # explicit safe state
 
         return await handler(event, data)
