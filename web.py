@@ -1,21 +1,23 @@
-from flask import Flask
-import threading
+from aiohttp import web
 import asyncio
+from src.app.main import main
 
-from src.app.main import main  # tera aiogram bot main()
+async def handle(request):
+    return web.Response(text="Bot is running")
 
-app = Flask(__name__)
+async def start_web():
+    app = web.Application()
+    app.router.add_get("/", handle)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", 10000)
+    await site.start()
 
-@app.route("/")
-def home():
-    return "Bot is running ✅"
-
-def run_bot():
-    asyncio.run(main())
+async def main_wrapper():
+    await asyncio.gather(
+        main(),        # bot
+        start_web()    # web
+    )
 
 if __name__ == "__main__":
-    # Bot thread
-    threading.Thread(target=run_bot).start()
-
-    # Flask server
-    app.run(host="0.0.0.0", port=10000)
+    asyncio.run(main_wrapper())
