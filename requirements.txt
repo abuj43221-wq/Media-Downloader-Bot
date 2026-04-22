@@ -17,3 +17,4 @@ urllib3
 faster_whisper
 pydub
 selenium
+flask
