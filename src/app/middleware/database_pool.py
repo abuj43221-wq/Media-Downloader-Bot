@@ -9,6 +9,9 @@ class DatabaseMiddleware(BaseMiddleware):
     def __init__(self, pool: asyncpg.Pool):
         self.pool = pool
 
+    if self.pool is None:
+    return await handler(event, data)
+
     async def __call__(
         self,
             handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
