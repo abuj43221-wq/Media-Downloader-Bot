@@ -32,21 +32,20 @@ async def main():
 
     pool = None
 
-    # 🔥 SAFE DB CONNECTION (NO CRASH)
+    # 🔥 SAFE DB CONNECTION (NO CRASH EVER)
     try:
         pool = await asyncpg.create_pool(dsn, ssl=True)
 
         async with pool.acquire() as conn:
             await create_database_tables(conn)
 
-        print("✅ Database connected")
+        print("✅ DB connected")
 
     except Exception as e:
-        pool = None
-        logger.error(f"❌ DB error: {e}")
-        print("⚠️ Bot running without database")
+        logger.error(f"❌ DB failed: {e}")
+        print("⚠️ Bot running WITHOUT database")
 
-    # 🔥 STORAGE (SAFE)
+    # 🔥 STORAGE SAFE MODE
     if settings.bot_user_redis:
         try:
             key_builder = DefaultKeyBuilder(with_destiny=True)
@@ -55,7 +54,7 @@ async def main():
                 key_builder=key_builder
             )
         except Exception as e:
-            logger.error(f"Redis error: {e}")
+            logger.error(f"Redis failed: {e}")
             storage = MemoryStorage()
     else:
         storage = MemoryStorage()
@@ -66,11 +65,9 @@ async def main():
     other_router = Router()
 
     register_all_dialogs(dialogs_router)
-
-    # middleware (pool None safe pass)
-    register_middleware(dp, settings, pool)
-
     register_all_router(dp, settings)
+
+    register_middleware(dp, settings, pool)
 
     dp.include_router(dialogs_router)
     dp.include_router(other_router)
@@ -87,7 +84,7 @@ async def main():
         default=DefaultBotProperties(parse_mode="HTML")
     )
 
-    # background tasks (safe even without DB)
+    # 🔥 BACKGROUND TASKS SAFE
     asyncio.create_task(requirements_updater())
 
     if pool:
@@ -97,7 +94,11 @@ async def main():
 
     await bot_commands(bot, settings)
 
-    # 🚀 BOT ALWAYS RUNS (IMPORTANT FIX)
+    # 🔥 IMPORTANT FIX (BOT ALWAYS RESPONDS)
+    await bot.delete_webhook(drop_pending_updates=True)
+
+    print("🤖 BOT STARTING POLLING...")
+
     await dp.start_polling(bot)
 
 
